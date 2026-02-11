@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
 
     SDL_Texture* pTexture = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_ABGR8888,
+        SDL_PIXELFORMAT_RGBA32,
         SDL_TEXTUREACCESS_STATIC,
         PIMG->width,
         PIMG->height
