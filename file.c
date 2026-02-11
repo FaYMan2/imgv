@@ -25,12 +25,12 @@ PPM6_IMAGE* read_ppm6_image(FILE* file){
     if (!image) {
         fprintf(stderr, "Memory allocation failed\n");
         return NULL;
-    } 
-    
+    }
+
     fscanf(file, "%2s", (char[3]){0}); // Skip magic number
     fscanf(file, "%d %d", &image->width, &image->height);
     fscanf(file, "%d", &image->max_color_value);
-    fgetc(file); // Skip newline 
+    fgetc(file); // Skip newline
 
     if (image->max_color_value > 255) {
         fprintf(stderr, "Unsupported max color value: %d\n", image->max_color_value);
@@ -46,7 +46,7 @@ PPM6_IMAGE* read_ppm6_image(FILE* file){
         free_ppm6_image(image);
         return NULL;
     }
-    
+
     if (fread(RGB_pixels, 1, image_size, file) != image_size) {
         fprintf(stderr, "Failed to read pixel data\n");
         free(RGB_pixels);
@@ -76,7 +76,7 @@ IMAGE_FORMATS get_file_format(const char* file_path) {
     FILE* file = fopen(file_path, "rb");
     if (!file) {
         fprintf(stderr, "Could not open file: %s\n", file_path);
-        return IMAGE_UNKNOWN; 
+        return IMAGE_UNKNOWN;
     }
 
     if(check_ppm6_format(file)) {
@@ -86,5 +86,3 @@ IMAGE_FORMATS get_file_format(const char* file_path) {
     fclose(file);
     return IMAGE_UNKNOWN;
 }
-
-    

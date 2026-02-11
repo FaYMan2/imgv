@@ -3,12 +3,13 @@
 #include <stdbool.h>
 #include "file.h"
 
+
 int main(int argc, char* argv[]) {
     if(argc <= 1) {
         fprintf(stderr, "File not specified\n");
         exit(1);
     }
-    
+
     IMAGE_FORMATS format = get_file_format(argv[1]);
     if(format == IMAGE_UNKNOWN){
         fprintf(stderr, "Unsupported file format\n");
@@ -34,39 +35,57 @@ int main(int argc, char* argv[]) {
 
     RGBA px = PIMG->pixels[0];
     printf("First pixel: %d %d %d\n", px.r, px.g, px.b);
-    // if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    //     printf("SDL Init Failed: %s\n", SDL_GetError());
-    //     return 1;
-    // }
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        printf("SDL Init Failed: %s\n", SDL_GetError());
+        return 1;
+    }
 
-    // SDL_Window* window = SDL_CreateWindow(
-    //     "Image Viewer",
-    //     SDL_WINDOWPOS_CENTERED,
-    //     SDL_WINDOWPOS_CENTERED,
-    //     400, 400,
-    //     SDL_WINDOW_SHOWN
-    // );
+    SDL_Window* window = SDL_CreateWindow(
+        "Image Viewer",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        PIMG->width,
+        PIMG->height,
+        SDL_WINDOW_SHOWN
+    );
 
-    // SDL_Renderer* renderer = SDL_CreateRenderer(
-    //     window,
-    //     -1,
-    //     SDL_RENDERER_ACCELERATED
-    // );
-    
-    // SDL_Event e;
-    // bool running = true;
+    SDL_Renderer* renderer = SDL_CreateRenderer(
+        window,
+        -1,
+        SDL_RENDERER_ACCELERATED
+    );
 
-    // while (running) {
-    //     while (SDL_PollEvent(&e)) {
-    //         if (e.type == SDL_QUIT)
-    //             running = false;
-    //     }   
-    //     SDL_RenderClear(renderer);
-    //     SDL_RenderPresent(renderer);
-    // }
+    SDL_Texture* pTexture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_ABGR8888,
+        SDL_TEXTUREACCESS_STATIC,
+        PIMG->width,
+        PIMG->height
+    );
 
-    // SDL_DestroyRenderer(renderer);
-    // SDL_DestroyWindow(window);
-    // SDL_Quit();
+    if(SDL_UpdateTexture(pTexture, NULL, PIMG->pixels, PIMG->width * sizeof(RGBA)) != 0) {
+        printf("SDL Init Failed: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    SDL_Event e;
+    bool running = true;
+
+    while(running){
+        while(SDL_PollEvent(&e)){
+            if(e.type == SDL_QUIT)running = false;
+        }
+
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, pTexture, NULL, NULL);
+        SDL_RenderPresent(renderer);
+    }
+
+    SDL_DestroyTexture(pTexture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    free_ppm6_image(PIMG);
+
     return 0;
 }
