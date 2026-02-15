@@ -1,5 +1,10 @@
+#ifdef defined(__APPLE__)
+    #include <SDL.h>
+#else
+    #include<SDL2/SDL.h>
+#endif
+
 #include <stdio.h>
-#include <SDL.h>
 #include <stdbool.h>
 #include "file.h"
 
