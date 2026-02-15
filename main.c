@@ -1,4 +1,4 @@
-#ifdef defined(__APPLE__)
+#ifdef __APPLE__
     #include <SDL.h>
 #else
     #include<SDL2/SDL.h>
@@ -12,18 +12,38 @@
 #define MAX_ZOOM 10.f
 #define MIN_ZOOM 0.1f
 
+typedef struct {
+    float zoom;
+    int offset_x;
+    int offset_y;
+} Image_State;
+
 float max_f(float a,float b){
     return a > b ? a : b;
 }
 
-
-void update_dst_rect(SDL_Rect* rect, SDL_Window* window,int imgW, int imgH, float zoom){
+void update_dst_rect(SDL_Rect* rect, SDL_Window* window,int imgW, int imgH, Image_State state){
     int winW, winH;
     SDL_GetWindowSize(window, &winW, &winH);
-    rect->w = (int)(imgW * zoom);
-    rect->h = (int)(imgH * zoom);
-    rect->x = (winW - rect->w) / 2;
-    rect->y = (winH - rect->h) / 2;
+    rect->w = (int)(imgW * state.zoom);
+    rect->h = (int)(imgH * state.zoom);
+    rect->x = (winW - rect->w) / 2 + state.offset_x;
+    rect->y = (winH - rect->h) / 2 + state.offset_y;
+}
+
+
+void handle_keypress(SDL_Keycode key, Image_State* state){
+    if(key == SDLK_EQUALS) state->zoom *= 1.1f;
+    if(key == SDLK_MINUS) state->zoom *= 0.9f;
+    if(key == SDLK_LEFT) state->offset_x -= 10;
+    if(key == SDLK_RIGHT) state->offset_x += 10;
+    if(key == SDLK_UP) state->offset_y -= 10;
+    if(key == SDLK_DOWN) state->offset_y += 10;
+    if(key == SDLK_0) {
+        state->zoom = 1.f;
+        state->offset_x = 0;
+        state->offset_y = 0;
+    };
 }
 
 int main(int argc, char* argv[]) {
@@ -93,7 +113,13 @@ int main(int argc, char* argv[]) {
 
     SDL_Event e;
     bool running = true;
-    float zoom = 1.0f;
+
+    Image_State state = {
+        .zoom = 1.f,
+        .offset_x = 0,
+        .offset_y = 0
+    };
+
     SDL_Rect dstRect;
     dstRect.h = PIMG -> height;
     dstRect.w = PIMG -> width;
@@ -105,16 +131,15 @@ int main(int argc, char* argv[]) {
             if(e.type == SDL_QUIT)running = false;
 
             if(e.type == SDL_KEYDOWN) {
-                if(e.key.keysym.sym == SDLK_EQUALS) zoom *= 1.1f;
-                if(e.key.keysym.sym == SDLK_MINUS) zoom *= 0.9f;
+                handle_keypress(e.key.keysym.sym, &state);
             }
         }
 
         // CLAMP ZOOM
-        if(zoom <= MIN_ZOOM) zoom = MIN_ZOOM;
-        if(zoom >= MAX_ZOOM) zoom = MAX_ZOOM;
+        if(state.zoom <= MIN_ZOOM) state.zoom = MIN_ZOOM;
+        if(state.zoom >= MAX_ZOOM) state.zoom = MAX_ZOOM;
 
-        update_dst_rect(&dstRect, window, PIMG->width, PIMG->height, zoom);
+        update_dst_rect(&dstRect, window, PIMG->width, PIMG->height, state);
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, pTexture, NULL, &dstRect);
         SDL_RenderPresent(renderer);
